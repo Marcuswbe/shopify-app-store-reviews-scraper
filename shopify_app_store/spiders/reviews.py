@@ -30,3 +30,7 @@ class ReviewsSpider(scrapy.Spider):
                 'country': container.xpath('./div[2]/div[2]/text()').get(),
                 'time_using_app': container.xpath('./div[2]/div[3]/text()').get(),
             }
+
+        next_page = response.xpath('//a[@rel="next"]')
+        if next_page:
+            yield response.follow(next_page[0], self.parse)
