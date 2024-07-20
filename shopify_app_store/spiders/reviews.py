@@ -4,7 +4,10 @@ import scrapy
 class ReviewsSpider(scrapy.Spider):
     name = "reviews"
     allowed_domains = ["apps.shopify.com"]
-    start_urls = ["https://apps.shopify.com/shopify-pos/reviews"]  # TODO
+
+    def __init__(self, url, *args, **kwargs):
+        super(ReviewsSpider, self).__init__(*args, **kwargs)
+        self.start_urls = [url]
 
     def parse(self, response):
         containers = response.xpath('//div[@data-merchant-review]')
