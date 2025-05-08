@@ -3,25 +3,22 @@ from apify import Actor
 
 async def main():
     async with Actor:
-        inp = await Actor.get_input() or {}
+        inp   = await Actor.get_input() or {}
+        url   = inp.get("app_url")
+        limit = str(inp.get("limit", 100000))      # big default
 
-        url = inp.get("app_url")
         if not url:
             raise ValueError("Input must contain 'app_url'")
 
-        # NEW — read limit from input; default 0 means "no cap"
-        limit = str(inp.get("limit", 10000))   # 0 = spider scrapes all pages
+        tmp = tempfile.NamedTemporaryFile(delete=False,
+                                          suffix=".csv").name
 
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
-
-        # NEW — include the limit argument when we call Scrapy
         subprocess.run(
             [
-                "scrapy",
-                "crawl",
-                "reviews",
+                "scrapy", "crawl", "reviews",
                 "-a", f"url={url}",
                 "-a", f"limit={limit}",
+                "-s", "CLOSESPIDER_ITEMCOUNT=0",   # ← ***new***
                 "-O", tmp,
             ],
             check=True,
