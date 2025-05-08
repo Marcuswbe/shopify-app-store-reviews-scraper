@@ -13,16 +13,17 @@ async def main():
         tmp = tempfile.NamedTemporaryFile(delete=False,
                                           suffix=".csv").name
 
-        subprocess.run(
-            [
-                "scrapy", "crawl", "reviews",
-                "-a", f"url={url}",
-                "-a", f"limit={limit}",
-                "-s", "CLOSESPIDER_ITEMCOUNT=0",
-                "-O", tmp,
-            ],
-            check=True,
-        )
+  subprocess.run(
+    [
+        "scrapy", "crawl", "reviews",
+        "-a", f"url={url}",
+        "-a", f"limit={limit}",
+        "-s", "CLOSESPIDER_ITEMCOUNT=0",   # already there
+        "-s", "CLOSESPIDER_PAGECOUNT=0",   # ← NEW: no page cap
+        "-O", tmp,
+    ],
+    check=True,
+)
 
         with open(tmp, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
