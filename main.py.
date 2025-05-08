@@ -10,7 +10,7 @@ async def main():
             raise ValueError("Input must contain 'app_url'")
 
         # NEW — read limit from input; default 0 means "no cap"
-        limit = str(inp.get("limit", 0))   # 0 = spider scrapes all pages
+        limit = str(inp.get("limit", 10000))   # 0 = spider scrapes all pages
 
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
 
