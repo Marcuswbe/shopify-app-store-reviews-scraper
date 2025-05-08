@@ -91,3 +91,5 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 0.3
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+# Disable feed batching: write one file no matter how many items
+FEED_EXPORT_BATCH_ITEM_COUNT = None
