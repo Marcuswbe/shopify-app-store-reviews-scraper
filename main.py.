@@ -1,39 +1,37 @@
-import asyncio, csv, subprocess, tempfile
+import asyncio, csv, glob, os, subprocess, tempfile
 from apify import Actor
-
 
 async def main() -> None:
     async with Actor:
-        # ---------- read & validate input ----------
         inp = await Actor.get_input() or {}
-        url = inp.get("app_url")            # mandatory
-        limit = str(inp.get("limit", 100000))  # huge default = “all reviews”
+        url = inp.get("app_url")
+        limit = str(inp.get("limit", 100000))
 
         if not url:
             raise ValueError("Input must contain 'app_url'")
 
-        # ---------- run the Scrapy spider ----------
-        tmp_csv = tempfile.NamedTemporaryFile(delete=False,
-                                              suffix=".csv").name
+        # Give Scrapy a base filename; it may create tmp.csv, tmp_1.csv, ...
+        tmp_base = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".csv"
+        ).name
+        # Scrapy command
+        cmd = [
+            "scrapy", "crawl", "reviews",
+            "-a", f"url={url}",
+            "-a", f"limit={limit}",
+            "-s", "CLOSESPIDER_ITEMCOUNT=0",
+            "-s", "CLOSESPIDER_PAGECOUNT=0",
+            "-O", tmp_base,
+        ]
+        subprocess.run(cmd, check=True)
 
-        subprocess.run(
-            [
-                "scrapy", "crawl", "reviews",
-                "-a", f"url={url}",
-                "-a", f"limit={limit}",
-                # turn off Scrapy’s built-in 500-item / 25-page guards
-                "-s", "CLOSESPIDER_ITEMCOUNT=0",
-                "-s", "CLOSESPIDER_PAGECOUNT=0",
-                "-O", tmp_csv,                 # write CSV to a temp file
-            ],
-            check=True,
-        )
-
-        # ---------- stream the CSV rows into the Actor dataset ----------
-        with open(tmp_csv, newline="", encoding="utf-8") as f:
-            for row in csv.DictReader(f):
-                await Actor.push_data(row)
-
+        # Push every CSV batch (tmp.csv, tmp_1.csv, …)
+        for csv_path in sorted(glob.glob(tmp_base.replace(".csv", "*"))):
+            if not os.path.getsize(csv_path):
+                continue  # skip empty files
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    await Actor.push_data(row)
 
 if __name__ == "__main__":
     asyncio.run(main())
