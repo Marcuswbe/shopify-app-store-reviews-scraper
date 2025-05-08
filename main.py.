@@ -18,7 +18,7 @@ async def main():
                 "scrapy", "crawl", "reviews",
                 "-a", f"url={url}",
                 "-a", f"limit={limit}",
-                "-s", "CLOSESPIDER_ITEMCOUNT=0",   # ← ***new***
+                "-s", "CLOSESPIDER_ITEMCOUNT=0",
                 "-O", tmp,
             ],
             check=True,
